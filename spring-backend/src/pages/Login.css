@@ -1,0 +1,58 @@
+.role-container {
+  min-height: 70vh;
+  padding: 60px 20px;
+  text-align: center;
+  background: #f6f3ee;
+}
+
+.role-title {
+  font-size: 34px;
+  margin-bottom: 40px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.role-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 25px;
+  max-width: 900px;
+  margin: auto;
+}
+
+.role-card {
+  background: white;
+  padding: 40px 20px;
+  border-radius: 16px;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  transition: all 0.25s ease;
+}
+
+.role-card:hover {
+  transform: translateY(-8px);
+  background: #8b1e2d;
+  color: white;
+}
+
+.role-card h3 {
+  font-size: 22px;
+  margin-bottom: 8px;
+}
+
+.role-card p {
+  font-size: 14px;
+  opacity: 0.8;
+}
+.login-form {
+  max-width: 320px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.error-text {
+  color: #e53935;
+  font-size: 14px;
+}

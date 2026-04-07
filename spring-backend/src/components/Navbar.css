@@ -1,0 +1,54 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 40px;
+  background: #7A1E2C;
+  color: white;
+}
+
+.nav-links {
+  display: flex;
+  gap: 25px;
+  list-style: none;
+}
+
+.nav-links a {
+  color: white;
+  text-decoration: none;
+}
+/* ===== CART BADGE ===== */
+
+.cart-wrapper {
+  position: relative;
+  font-size: 26px;
+  margin-left: 14px;
+  text-decoration: none;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  background: #e53935;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 50%;
+  min-width: 18px;
+  text-align: center;
+}
+.theme-toggle {
+  margin-right: 14px;
+  background: transparent;
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.theme-toggle:hover {
+  background: rgba(0,0,0,0.05);
+}
