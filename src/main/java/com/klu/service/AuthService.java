@@ -6,15 +6,18 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import com.klu.security.JwtUtil;
 
 @Service
 public class AuthService {
 
     private final UserRepository repo;
+    private final JwtUtil jwtUtil;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
-    public AuthService(UserRepository repo) {
+    public AuthService(UserRepository repo, JwtUtil jwtUtil) {
         this.repo = repo;
+        this.jwtUtil = jwtUtil;
     }
 
     public String register(String username, String email, String password) {
@@ -58,6 +61,6 @@ public class AuthService {
             return "Invalid password";
         }
 
-        return "Login successful";
+        return jwtUtil.generateToken(email); // 🔐 RETURN TOKEN
     }
 }

@@ -1,0 +1,46 @@
+.cart-page {
+  padding: 40px;
+  max-width: 900px;
+  margin: auto;
+}
+
+.cart-item {
+  display: flex;
+  gap: 20px;
+  background: white;
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+}
+
+.cart-item img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.cart-info {
+  flex: 1;
+}
+
+.qty-controls button {
+  margin: 0 6px;
+  padding: 4px 10px;
+}
+
+.remove-btn {
+  margin-top: 10px;
+  background: #e53935;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+.cart-total {
+  text-align: right;
+  margin-top: 30px;
+  font-size: 24px;
+}
