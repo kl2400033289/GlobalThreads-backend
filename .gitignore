@@ -1,23 +1,28 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
+# Logs
+*.log
 
-# testing
-/coverage
-
-# production
-/build
-
-# misc
+# OS files
 .DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+Thumbs.db
 
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# IDE (Eclipse / IntelliJ)
+.idea/
+*.iml
+.classpath
+.project
+.factorypath
+.settings/
+
+# Environment
+.env
+
+# Application secrets
+application.properties
+
+# Build files
+build/
+dist/
