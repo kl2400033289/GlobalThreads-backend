@@ -1,58 +1,57 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../context/LanguageContext";
+import {
+  resetForgotPassword,
+  sendForgotPasswordOtp,
+  verifyForgotPasswordOtp,
+} from "../api";
 import "./Login.css"; // reuse same styles
 
 function ForgotPassword() {
   const navigate = useNavigate();
   const { t } = useLanguage();
 
-  const [step, setStep] = useState(1); // 1: username, 2: OTP, 3: new password
-  const [username, setUsername] = useState("");
+  const [step, setStep] = useState(1); // 1: email, 2: OTP, 3: new password
+  const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
-  const [generatedOtp, setGeneratedOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState({ text: "", type: "" });
   const [strength, setStrength] = useState("");
 
-  // Step 1: Check username exists
-  const handleUsernameSubmit = (e) => {
+  const setError = (text) => setMessage({ text, type: "error" });
+  const setSuccess = (text) => setMessage({ text, type: "success" });
+
+  // Step 1: Send OTP to email
+  const handleEmailSubmit = async (e) => {
     e.preventDefault();
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-    const defaultUsers = [
-      { username: "admin", password: "admin123", role: "admin" },
-      { username: "artisan", password: "artisan123", role: "artisan" },
-      { username: "buyer", password: "buyer123", role: "buyer" },
-      { username: "marketing", password: "marketing123", role: "marketing" },
-    ];
-    const allUsers = [...defaultUsers, ...users];
+    const normalizedEmail = email.trim().toLowerCase();
 
-    const userExists = allUsers.find(
-      (u) => u.username.toLowerCase() === username.toLowerCase()
-    );
-
-    if (!userExists) {
-      setMessage(t("forgot.usernameNotFound"));
-      return;
+    try {
+      const responseText = await sendForgotPasswordOtp(normalizedEmail);
+      setStep(2);
+      setSuccess(responseText || "OTP sent successfully.");
+    } catch (error) {
+      setError(error?.message || "Unable to send OTP. Please try again.");
     }
-
-    // generate OTP
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-    setGeneratedOtp(otpCode);
-    setStep(2);
-    setMessage(`${t("forgot.otpMessagePrefix")}: ${otpCode} ${t("forgot.otpMessageSuffix")}`); // in real apps, send via email
   };
 
   // Step 2: Verify OTP
-  const handleOtpSubmit = (e) => {
+  const handleOtpSubmit = async (e) => {
     e.preventDefault();
-    if (otp !== generatedOtp) {
-      setMessage(t("forgot.invalidOtp"));
-      return;
+
+    try {
+      const responseText = await verifyForgotPasswordOtp({
+        email: email.trim().toLowerCase(),
+        otp: otp.trim(),
+      });
+
+      setStep(3);
+      setSuccess(responseText || "OTP verified successfully.");
+    } catch (error) {
+      setError(error?.message || "Invalid OTP. Please try again.");
     }
-    setStep(3);
-    setMessage("");
   };
 
   // Password strength check
@@ -70,33 +69,32 @@ function ForgotPassword() {
   };
 
   // Step 3: Update password
-  const handlePasswordSubmit = (e) => {
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
-      setMessage(t("signup.passwordMismatch"));
+      setError(t("signup.passwordMismatch"));
       return;
     }
 
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-    const index = users.findIndex(
-      (u) => u.username.toLowerCase() === username.toLowerCase()
-    );
-
-    if (index !== -1) {
-      users[index].password = newPassword;
-      localStorage.setItem("users", JSON.stringify(users));
-    } else {
-      // check demo users (optional: allow changing demo passwords for testing)
-      setMessage(
-        t("forgot.cannotChangeDemo")
-      );
+    if (newPassword.length < 6) {
+      setError(t("signup.passwordMin"));
       return;
     }
 
-    setMessage(t("forgot.passwordUpdated"));
-    setTimeout(() => {
-      navigate("/login");
-    }, 1500);
+    try {
+      const responseText = await resetForgotPassword({
+        email: email.trim().toLowerCase(),
+        otp: otp.trim(),
+        newPassword,
+      });
+
+      setSuccess(responseText || t("forgot.passwordUpdated"));
+      setTimeout(() => {
+        navigate("/login");
+      }, 1200);
+    } catch (error) {
+      setError(error?.message || "Could not reset password. Please try again.");
+    }
   };
 
   return (
@@ -104,15 +102,22 @@ function ForgotPassword() {
       <h1 className="role-title">{t("forgot.title")}</h1>
 
       {step === 1 && (
-        <form className="login-form" onSubmit={handleUsernameSubmit}>
+        <form className="login-form" onSubmit={handleEmailSubmit}>
           <input
-            type="text"
-            placeholder={t("forgot.enterUsername")}
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            type="email"
+            placeholder={t("signup.enterEmail")}
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setMessage({ text: "", type: "" });
+            }}
             required
           />
-          {message && <p className="error-text">{message}</p>}
+          {message.text && (
+            <p className={message.type === "success" ? "success-text" : "error-text"}>
+              {message.text}
+            </p>
+          )}
           <button type="submit" className="primary-btn">
             {t("forgot.next")}
           </button>
@@ -125,10 +130,17 @@ function ForgotPassword() {
             type="text"
             placeholder={t("forgot.enterOtp")}
             value={otp}
-            onChange={(e) => setOtp(e.target.value)}
+            onChange={(e) => {
+              setOtp(e.target.value);
+              setMessage({ text: "", type: "" });
+            }}
             required
           />
-          {message && <p className="error-text">{message}</p>}
+          {message.text && (
+            <p className={message.type === "success" ? "success-text" : "error-text"}>
+              {message.text}
+            </p>
+          )}
           <button type="submit" className="primary-btn">
             {t("forgot.verifyOtp")}
           </button>
@@ -148,11 +160,18 @@ function ForgotPassword() {
             type="password"
             placeholder={t("forgot.confirmPassword")}
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            onChange={(e) => {
+              setConfirmPassword(e.target.value);
+              setMessage({ text: "", type: "" });
+            }}
             required
           />
           {strength && <p>{t("forgot.passwordStrength")}: {strength}</p>}
-          {message && <p className="error-text">{message}</p>}
+          {message.text && (
+            <p className={message.type === "success" ? "success-text" : "error-text"}>
+              {message.text}
+            </p>
+          )}
           <button type="submit" className="primary-btn">
             {t("forgot.resetPassword")}
           </button>

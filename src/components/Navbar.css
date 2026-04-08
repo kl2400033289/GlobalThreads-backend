@@ -2,11 +2,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 28px;
-  background: linear-gradient(135deg, var(--nav-bg), var(--primary));
+  padding: 16px 32px;
+  background: linear-gradient(135deg, #8B3A3A 0%, #5C2C2C 50%, #3D2020 100%);
   color: #fff7ea;
-  border-bottom: 1px solid rgba(255, 224, 160, 0.35);
-  box-shadow: 0 8px 18px var(--shadow-color);
+  border-bottom: 2px solid rgba(212, 165, 116, 0.3);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
   position: sticky;
   top: 0;
   z-index: 20;
@@ -15,16 +15,25 @@
 .logo {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   font-weight: 700;
-  letter-spacing: 0.3px;
-  font-size: 1.1rem;
+  letter-spacing: 0.8px;
+  font-size: 1.3rem;
+  color: #fff7ea;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.logo:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
 }
 
 .logo-image {
-  width: 36px;
-  height: 36px;
+  width: 45px;
+  height: 45px;
   object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 .nav-links {

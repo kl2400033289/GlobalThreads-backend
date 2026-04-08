@@ -2,8 +2,7 @@ import "./Login.css";   // reuse SAME CSS
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useLanguage } from "../context/LanguageContext";
-import axios from "axios";
-import BASE_URL from "../api";
+import { registerUser } from "../api";
 
 function Signup() {
   const navigate = useNavigate();
@@ -55,19 +54,19 @@ function Signup() {
     }
 
     try {
-      const response = await axios.post(`${BASE_URL}/auth/register`, {
+      const responseText = await registerUser({
         username: form.username.trim(),
         email: form.email.trim().toLowerCase(),
         password: form.password,
       });
 
-      alert(response.data);
+      alert(responseText);
       setMessage({ text: t("signup.accountCreated"), type: "success" });
       setTimeout(() => {
         navigate("/login");
       }, 1200);
     } catch (error) {
-      const errorText = error.response?.data || "Signup failed";
+      const errorText = error?.message || "Signup failed";
       alert(errorText);
       setMessage({ text: String(errorText), type: "error" });
     }
@@ -115,6 +114,7 @@ function Signup() {
             <option value="buyer">{t("signup.buyer")}</option>
             <option value="artisan">{t("signup.artisan")}</option>
             <option value="marketing">{t("signup.marketing")}</option>
+            <option value="admin">{t("signup.admin")}</option>
           </select>
 
           <label htmlFor="signup-password">{t("signup.password")}</label>

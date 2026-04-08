@@ -5,6 +5,7 @@ import { AuthContext } from "../context/AuthContext";
 import { ThemeContext } from "../context/ThemeContext";
 import { WishlistContext } from "../context/WishlistContext";
 import { useLanguage } from "../context/LanguageContext";
+import logo from "../assets/logo.png";
 import "./Navbar.css";
 
 function Navbar() {
@@ -21,7 +22,7 @@ function Navbar() {
   return (
     <nav className="navbar">
       <Link to="/" className="logo">
-        <img src="/global_threads%20logo.png" alt="Global Threads" className="logo-image" />
+        <img src={logo} alt="Global Threads" className="logo-image" />
         <span>{t("common.appName", "Global Threads")}</span>
       </Link>
 

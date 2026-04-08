@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ProductContext } from "../context/ProductContext";
 import { CartContext } from "../context/CartContext";
@@ -18,6 +18,7 @@ function Shop() {
 
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("featured");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [quantities, setQuantities] = useState({});
   const [activated, setActivated] = useState({});
   const [selectedSizes, setSelectedSizes] = useState({});
@@ -47,7 +48,7 @@ function Shop() {
     const selectedSize = selectedSizes[productKey];
     
     if (!selectedSize) {
-      toast.error("Please select a size");
+      toast.error(t("productDetail.selectSizeError"));
       return;
     }
     
@@ -101,11 +102,17 @@ function Shop() {
     }
   };
 
-  const filteredProducts = products
-    .filter((product) =>
-      product.name.toLowerCase().includes(search.toLowerCase())
-    )
-    .sort((a, b) => {
+  const filteredProducts = useMemo(() => {
+    return products
+      .filter((product) =>
+        product.name.toLowerCase().includes(search.toLowerCase())
+      )
+      .filter((product) =>
+        selectedCategory === "all"
+          ? true
+          : (product.category || "general") === selectedCategory
+      )
+      .sort((a, b) => {
       if (sortBy === "price-low") {
         return a.price - b.price;
       }
@@ -120,6 +127,103 @@ function Shop() {
 
       return a.id - b.id;
     });
+  }, [products, search, sortBy, selectedCategory]);
+
+  const groupedProducts = useMemo(() => {
+    const sectionOrder = ["women", "men", "general"];
+    return sectionOrder.map((category) => ({
+      category,
+      products: filteredProducts.filter(
+        (product) => (product.category || "general") === category
+      ),
+    }));
+  }, [filteredProducts]);
+
+  const renderCard = (product) => (
+    <div
+      key={product.id}
+      className="shop-card"
+      onClick={() => navigate(`/product/${product.id}`)}
+      style={{ cursor: "pointer" }}
+    >
+      <div className="image-wrap">
+        <img
+          src={product.image}
+          alt={product.name}
+          onError={(e) =>
+            (e.target.src =
+              "https://via.placeholder.com/300x300?text=Product")
+          }
+        />
+        <button
+          className={`heart-btn ${isInWishlist(product.id) ? "active" : ""}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleWishlist(product);
+            toast.success(
+              isInWishlist(product.id)
+                ? t("shop.removedFromWishlist")
+                : t("shop.addedToWishlist")
+            );
+          }}
+        >
+          ♥
+        </button>
+      </div>
+
+      <h3>{t(`products.${product.name}`, product.name)}</h3>
+      <p className="price">{formatPrice(product.price)}</p>
+      <p className="shop-rating">⭐ {(product.rating || 0).toFixed(1)}</p>
+
+      <div className="size-selector" onClick={(e) => e.stopPropagation()}>
+        {(product.sizes?.length ? product.sizes : sizes).map((size) => (
+          <button
+            key={size}
+            className={`size-btn ${selectedSizes[product.id] === size ? "active" : ""}`}
+            onClick={() => setSelectedSizes((prev) => ({ ...prev, [product.id]: size }))}
+          >
+            {size}
+          </button>
+        ))}
+      </div>
+
+      <div onClick={(e) => e.stopPropagation()}>
+        {!isActivated(product.id) ? (
+          <button
+            className="add-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleActivateProduct(product);
+            }}
+          >
+            {t("shop.addToCart")}
+          </button>
+        ) : (
+          <div className="qty-selector">
+            <button
+              className="qty-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDecreaseQty(product);
+              }}
+            >
+              −
+            </button>
+            <span className="qty-display">{getQuantity(product.id)}</span>
+            <button
+              className="qty-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleIncreaseQty(product);
+              }}
+            >
+              +
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div className="shop-page">
@@ -149,98 +253,53 @@ function Shop() {
         </select>
       </div>
 
+      <div className="shop-controls">
+        <button
+          className={`secondary-btn ${selectedCategory === "all" ? "active" : ""}`}
+          onClick={() => setSelectedCategory("all")}
+        >
+          {t("shop.categoryAll")}
+        </button>
+        <button
+          className={`secondary-btn ${selectedCategory === "women" ? "active" : ""}`}
+          onClick={() => setSelectedCategory("women")}
+        >
+          {t("shop.categoryWomen")}
+        </button>
+        <button
+          className={`secondary-btn ${selectedCategory === "men" ? "active" : ""}`}
+          onClick={() => setSelectedCategory("men")}
+        >
+          {t("shop.categoryMen")}
+        </button>
+      </div>
+
       <p className="results-count">{filteredProducts.length} {t("shop.itemsAvailable")}</p>
 
       {filteredProducts.length === 0 ? (
         <p className="empty-text">{t("shop.noProducts")}</p>
       ) : (
-        <div className="shop-grid">
-          {filteredProducts.map((product) => (
-            <div
-              key={product.id}
-              className="shop-card"
-              onClick={() => navigate(`/product/${product.id}`)}
-              style={{ cursor: "pointer" }}
-            >
-              <div className="image-wrap">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  onError={(e) =>
-                    (e.target.src =
-                      "https://via.placeholder.com/300x300?text=Product")
-                  }
-                />
-                <button
-                  className={`heart-btn ${isInWishlist(product.id) ? "active" : ""}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleWishlist(product);
-                    toast.success(
-                      isInWishlist(product.id)
-                        ? "Removed from wishlist"
-                        : "Added to wishlist"
-                    );
-                  }}
-                >
-                  ♥
-                </button>
-              </div>
-
-              <h3>{t(`products.${product.name}`, product.name)}</h3>
-              <p className="price">{formatPrice(product.price)}</p>
-              <p className="shop-rating">⭐ {(product.rating || 0).toFixed(1)}</p>
-
-              <div className="size-selector" onClick={(e) => e.stopPropagation()}>
-                {(product.sizes?.length ? product.sizes : sizes).map((size) => (
-                  <button
-                    key={size}
-                    className={`size-btn ${selectedSizes[product.id] === size ? "active" : ""}`}
-                    onClick={() => setSelectedSizes((prev) => ({ ...prev, [product.id]: size }))}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
-
-              <div onClick={(e) => e.stopPropagation()}>
-                {!isActivated(product.id) ? (
-                  <button
-                    className="add-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleActivateProduct(product);
-                    }}
-                  >
-                    {t("shop.addToCart")}
-                  </button>
-                ) : (
-                  <div className="qty-selector">
-                    <button
-                      className="qty-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDecreaseQty(product);
-                      }}
-                    >
-                      −
-                    </button>
-                    <span className="qty-display">{getQuantity(product.id)}</span>
-                    <button
-                      className="qty-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleIncreaseQty(product);
-                      }}
-                    >
-                      +
-                    </button>
+        selectedCategory === "all" ? (
+          groupedProducts.map(
+            ({ category, products: categoryProducts }) =>
+              categoryProducts.length > 0 && (
+                <section key={category} className="shop-section">
+                  <h2 className="shop-section-title">
+                    {category === "women"
+                      ? t("shop.categoryWomen")
+                      : category === "men"
+                        ? t("shop.categoryMen")
+                        : t("shop.categoryOther")}
+                  </h2>
+                  <div className="shop-grid">
+                    {categoryProducts.map(renderCard)}
                   </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+                </section>
+              )
+          )
+        ) : (
+          <div className="shop-grid">{filteredProducts.map(renderCard)}</div>
+        )
       )}
     </div>
   );

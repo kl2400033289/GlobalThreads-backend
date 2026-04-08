@@ -20,6 +20,14 @@ function AdminDashboard() {
   const [form, setForm] = useState({
     name: "",
     price: "",
+    costPrice: "",
+    category: "women",
+    rating: "",
+    color: "",
+    sizes: "",
+    description: "",
+    productStory: "",
+    imageUrl: "",
     image: "",
   });
 
@@ -99,12 +107,14 @@ function AdminDashboard() {
 
   const addProduct = (e) => {
     e.preventDefault();
-    if (!form.name || !form.price || !form.image) {
-      toast.error("Please select an image before importing the product.");
+    const resolvedImage = form.image || form.imageUrl;
+
+    if (!form.name || !form.price || !resolvedImage) {
+      toast.error("Please enter name, price, and image (upload or URL).");
       return;
     }
 
-    const duplicateImage = products.some((product) => product.image === form.image);
+    const duplicateImage = products.some((product) => product.image === resolvedImage);
 
     if (duplicateImage) {
       toast("This image is already in the database. Importing another copy.");
@@ -113,14 +123,39 @@ function AdminDashboard() {
     const newProduct = {
       id: Date.now(),
       name: form.name,
+      title: form.name,
       price: Number(form.price),
-      image: form.image,
-      rating: 0,
+      costPrice: form.costPrice === "" ? null : Number(form.costPrice),
+      category: form.category || "general",
+      image: resolvedImage,
+      imageUrl: resolvedImage,
+      rating: form.rating === "" ? 0 : Number(form.rating),
+      color: form.color,
+      sizes: form.sizes
+        ? form.sizes
+            .split(",")
+            .map((size) => size.trim())
+            .filter(Boolean)
+        : [],
+      description: form.description,
+      productStory: form.productStory,
       reviews: [],
     };
 
     setProducts((prev) => [...prev, newProduct]);
-    setForm({ name: "", price: "", image: "" });
+    setForm({
+      name: "",
+      price: "",
+      costPrice: "",
+      category: "women",
+      rating: "",
+      color: "",
+      sizes: "",
+      description: "",
+      productStory: "",
+      imageUrl: "",
+      image: "",
+    });
     setPreview("");
     toast.success("Product imported into the database.");
   };
@@ -297,6 +332,79 @@ function AdminDashboard() {
                   onChange={handleChange}
                 />
 
+                <input
+                  type="number"
+                  name="costPrice"
+                  placeholder="Cost Price"
+                  value={form.costPrice}
+                  onChange={handleChange}
+                />
+
+                <select
+                  name="category"
+                  className="admin-select"
+                  value={form.category}
+                  onChange={handleChange}
+                >
+                  <option value="women">Women</option>
+                  <option value="men">Men</option>
+                  <option value="general">General</option>
+                </select>
+
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="5"
+                  name="rating"
+                  placeholder="Rating (0 to 5)"
+                  value={form.rating}
+                  onChange={handleChange}
+                />
+
+                <input
+                  type="text"
+                  name="color"
+                  placeholder="Color"
+                  value={form.color}
+                  onChange={handleChange}
+                />
+
+                <input
+                  type="text"
+                  name="sizes"
+                  placeholder="Sizes (comma-separated, e.g. S, M, L, XL)"
+                  value={form.sizes}
+                  onChange={handleChange}
+                />
+
+                <textarea
+                  name="description"
+                  placeholder="Product description"
+                  value={form.description}
+                  onChange={handleChange}
+                  rows={3}
+                />
+
+                <textarea
+                  name="productStory"
+                  placeholder="Product story"
+                  value={form.productStory}
+                  onChange={handleChange}
+                  rows={3}
+                />
+
+                <input
+                  type="url"
+                  name="imageUrl"
+                  placeholder="Image URL"
+                  value={form.imageUrl}
+                  onChange={(e) => {
+                    handleChange(e);
+                    setPreview(e.target.value);
+                  }}
+                />
+
                 <input type="file" accept="image/*" onChange={handleImageUpload} />
 
                 {preview && <img src={preview} alt="preview" className="image-preview" />}
@@ -314,6 +422,10 @@ function AdminDashboard() {
                     <tr key={product.id}>
                       <td>{product.name}</td>
                       <td>₹{product.price}</td>
+                      <td>{product.category || "general"}</td>
+                      <td>
+                        {product.costPrice == null ? "-" : `₹${product.costPrice}`}
+                      </td>
                       <td>
                         <button className="delete-btn" onClick={() => deleteProduct(product.id)}>
                           🗑 {t("admin.delete")}

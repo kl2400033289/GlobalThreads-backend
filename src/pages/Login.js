@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useContext, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
-import axios from "axios";
-import BASE_URL from "../api";
+import { loginUser } from "../api";
 
 const parseJwtPayload = (token) => {
   try {
@@ -25,7 +24,7 @@ const parseJwtPayload = (token) => {
 
 function Login() {
   const navigate = useNavigate();
-  const { setAuthenticatedUser } = useContext(AuthContext);
+  const { setAuthenticatedUser, login } = useContext(AuthContext);
   const { t } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
 
@@ -69,19 +68,30 @@ function Login() {
     setError("");
   };
 
+  const quickAccessLogin = (account) => {
+    fillDemoAccount(account);
+    const result = login(account.email, account.password);
+
+    if (result.success) {
+      setError("");
+      alert(`${account.role} demo login successful`);
+      window.location.href = "/";
+      return;
+    }
+
+    setError("Quick access unavailable right now. Try normal login.");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const email = form.email.trim();
 
     try {
-      const response = await axios.post(`${BASE_URL}/auth/login`, {
+      const token = await loginUser({
         email,
         password: form.password,
       });
-
-      const token = response.data;
-      localStorage.setItem("token", token);
       console.log("Login token:", token);
 
       const payload = parseJwtPayload(token);
@@ -106,7 +116,16 @@ function Login() {
       alert("Login successful");
       window.location.href = "/";
     } catch (apiError) {
-      const errorText = apiError.response?.data || "Login failed";
+      // Fallback to local demo/custom user auth when backend demo account is unavailable.
+      const fallback = login(email, form.password);
+
+      if (fallback.success) {
+        alert("Login successful");
+        window.location.href = "/";
+        return;
+      }
+
+      const errorText = apiError?.message || "Login failed";
       alert(errorText);
       setError(t("login.invalidCreds"));
     }
@@ -177,7 +196,7 @@ function Login() {
                 key={account.email}
                 type="button"
                 className="demo-chip"
-                onClick={() => fillDemoAccount(account)}
+                onClick={() => quickAccessLogin(account)}
               >
                 {account.role}
               </button>

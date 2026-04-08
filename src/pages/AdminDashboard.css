@@ -126,6 +126,18 @@
   color: #111;
 }
 
+.admin-form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #111;
+  resize: vertical;
+  font-family: inherit;
+}
+
 /* preview */
 
 .image-preview {
