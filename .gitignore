@@ -1,28 +1,5 @@
-# Maven
-target/
-!.mvn/wrapper/maven-wrapper.jar
-
-# Logs
-*.log
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# IDE (Eclipse / IntelliJ)
-.idea/
+/target
+/.idea
 *.iml
-.classpath
-.project
-.factorypath
-.settings/
-
-# Environment
 .env
 
-# Application secrets
-application.properties
-
-# Build files
-build/
-dist/
